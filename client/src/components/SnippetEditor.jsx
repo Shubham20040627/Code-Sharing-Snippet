@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { useNavigate } from 'react-router-dom';
 import { Share2, Clock, Lock, Copy, Check, User } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -21,16 +21,13 @@ const SnippetEditor = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const token = localStorage.getItem('token');
-    const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-
     try {
-      const response = await axios.post('http://localhost:5000/api/create', {
+      const response = await api.post('/create', {
         code,
         language,
         password: password || null,
         expiryHours: parseInt(expiryHours)
-      }, config);
+      });
 
       const { shortId } = response.data;
       const link = `${window.location.origin}/snippet/${shortId}`;

@@ -13,13 +13,25 @@ const { verify } = pkg;
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// Production CORS configuration
+const corsOptions = {
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 
 const PORT = process.env.PORT || 5000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/snippet-share';
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('❌ FATAL: MONGODB_URI is not defined in environment variables');
+  process.exit(1);
+}
 
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ Connected to MongoDB'))

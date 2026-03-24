@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -23,7 +23,7 @@ const SnippetViewer = () => {
   const fetchSnippet = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:5000/api/snippet/${id}`);
+      const response = await api.get(`/snippet/${id}`);
       setSnippet(response.data);
       setIsProtected(response.data.isProtected);
       setLoading(false);
@@ -36,7 +36,7 @@ const SnippetViewer = () => {
   const handleVerifyPassword = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`http://localhost:5000/api/snippet/${id}/verify`, { password });
+      const response = await api.post(`/snippet/${id}/verify`, { password });
       setSnippet({ ...snippet, code: response.data.code });
       setIsProtected(false);
       setError('');

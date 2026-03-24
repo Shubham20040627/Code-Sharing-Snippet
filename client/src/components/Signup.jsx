@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { UserPlus, Mail, Lock, Sparkles, CheckCircle2 } from 'lucide-react';
@@ -25,7 +25,7 @@ const Signup = () => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/signup', { email, password });
+      const response = await api.post('/auth/signup', { email, password });
       login(response.data.user, response.data.token);
       navigate('/dashboard');
     } catch (err) {

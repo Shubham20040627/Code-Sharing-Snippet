@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Code2, ExternalLink, Trash2, Calendar } from 'lucide-react';
@@ -21,7 +21,7 @@ const Dashboard = () => {
 
   const fetchMySnippets = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/auth/my-snippets');
+      const response = await api.get('/auth/my-snippets');
       setSnippets(response.data);
     } catch (error) {
       console.error('Error fetching snippets:', error);
