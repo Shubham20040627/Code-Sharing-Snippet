@@ -224,7 +224,10 @@ app.post("/api/projects", auth, async (req, res) => {
     await project.save();
     res.status(201).json(project);
   } catch (error) {
-    res.status(400).json({ error: "Failed to create project" });
+    if (error.code === 11000) {
+      return res.status(400).json({ error: "A project with this name already exists" });
+    }
+    res.status(400).json({ error: error.message || "Failed to create project" });
   }
 });
 
