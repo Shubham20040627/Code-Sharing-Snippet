@@ -287,6 +287,38 @@ body::before {
   align-items: center;
 }
 
+/* Nav Search Bar */
+.nav-search {
+  position: relative;
+  flex: 1;
+  max-width: 400px;
+  margin: 0 2rem;
+}
+
+.nav-search input {
+  padding-left: 2.5rem;
+  height: 42px;
+  background: var(--bg-glass);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  border: 1px solid var(--border-glass);
+}
+
+.nav-search input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.nav-search svg {
+  position: absolute;
+  left: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
 /* Buttons */
 .btn {
   padding: 0.75rem 1.5rem;
@@ -440,6 +472,7 @@ select option {
 .auth-hero h1 span {
   display: block;
   background: linear-gradient(to right, var(--accent-blue), var(--accent-purple));
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

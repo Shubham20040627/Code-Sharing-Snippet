@@ -129,8 +129,22 @@ app.get('/api/snippet/:id', async (req, res) => {
       return res.status(404).json({ error: 'Snippet not found or expired' });
     }
 
-    // Check if password protected
-    const isProtected = !!snippet.password;
+    // Optional user authentication to check if user is the owner
+    let isOwner = false;
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (token) {
+      try {
+        const decoded = verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key_here');
+        if (snippet.user && snippet.user.toString() === decoded._id) {
+          isOwner = true;
+        }
+      } catch (e) {
+        // Token is invalid, treat as anonymous
+      }
+    }
+
+    // Check if password protected (bypass if owner)
+    const isProtected = !!snippet.password && !isOwner;
 
     res.status(200).json({
       code: isProtected ? null : snippet.code,
