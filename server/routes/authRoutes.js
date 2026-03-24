@@ -51,7 +51,9 @@ router.post('/login', async (req, res) => {
 // Get user's snippets (Protected)
 router.get('/my-snippets', auth, async (req, res) => {
   try {
-    const snippets = await Snippet.find({ user: req.user._id }).sort({ createdAt: -1 });
+    const snippets = await Snippet.find({ user: req.user._id })
+      .populate('project')
+      .sort({ createdAt: -1 });
     res.send(snippets);
   } catch (error) {
     res.status(500).send();

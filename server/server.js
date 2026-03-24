@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { nanoid } from 'nanoid';
 import bcrypt from 'bcryptjs';
 import Snippet from './models/Snippet.js';
+import Project from './models/Project.js';
 import authRoutes from './routes/authRoutes.js';
 import { auth } from './middleware/auth.js';
 import pkg from 'jsonwebtoken';
@@ -70,7 +71,7 @@ connectDB();
 // Create a snippet
 app.post('/api/create', async (req, res) => {
   try {
-    const { code, language, password, expiryHours } = req.body;
+    const { code, language, password, expiryHours, projectId } = req.body;
     
     // Optional user authentication
     let userId = null;
@@ -102,6 +103,7 @@ app.post('/api/create', async (req, res) => {
     const newSnippet = new Snippet({
       shortId,
       user: userId,
+      project: projectId || null,
       code,
       language: language || 'javascript',
       password: hashedPassword,
@@ -144,7 +146,16 @@ app.get('/api/snippet/:id', async (req, res) => {
     }
 
     // Check if password protected (bypass if owner)
-    const isProtected = !!snippet.password && !isOwner;
+    // If snippet belongs to a project, check project password too
+    let projectProtected = false;
+    if (snippet.project) {
+      const project = await Project.findById(snippet.project);
+      if (project && project.password && !isOwner) {
+        projectProtected = true;
+      }
+    }
+
+    const isProtected = (!!snippet.password || projectProtected) && !isOwner;
 
     res.status(200).json({
       code: isProtected ? null : snippet.code,
@@ -169,6 +180,17 @@ app.post('/api/snippet/:id/verify', async (req, res) => {
     }
 
     if (!snippet.password) {
+      // Check if project has password
+      if (snippet.project) {
+        const project = await Project.findById(snippet.project);
+        if (project && project.password) {
+          const isProjectMatch = await bcrypt.compare(password, project.password);
+          if (!isProjectMatch) {
+            return res.status(401).json({ error: 'Invalid project password' });
+          }
+          return res.status(200).json({ code: snippet.code });
+        }
+      }
       return res.status(200).json({ code: snippet.code });
     }
 
@@ -184,6 +206,49 @@ app.post('/api/snippet/:id/verify', async (req, res) => {
   }
 });
 
+
+// Project Routes
+app.post("/api/projects", auth, async (req, res) => {
+  try {
+    const { name, description, password } = req.body;
+    let hashedPassword = null;
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+    const project = new Project({
+      name,
+      description,
+      password: hashedPassword,
+      owner: req.user._id
+    });
+    await project.save();
+    res.status(201).json(project);
+  } catch (error) {
+    res.status(400).json({ error: "Failed to create project" });
+  }
+});
+
+app.get("/api/projects", auth, async (req, res) => {
+  try {
+    const projects = await Project.find({ owner: req.user._id });
+    res.json(projects);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.get("/api/projects/:id", auth, async (req, res) => {
+  try {
+    const project = await Project.findOne({ _id: req.params.id, owner: req.user._id });
+    if (!project) return res.status(404).json({ error: "Project not found" });
+    const snippets = await Snippet.find({ project: project._id });
+    res.json({ project, snippets });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
+
