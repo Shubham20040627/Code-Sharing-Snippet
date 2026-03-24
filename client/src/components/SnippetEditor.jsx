@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { useNavigate } from 'react-router-dom';
-import { Share2, Clock, Lock, Copy, Check, User, FolderPlus } from 'lucide-react';
+import { Share2, Clock, Copy, Check, User, FolderPlus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import ProjectModal from './ProjectModal';
@@ -9,7 +9,6 @@ import ProjectModal from './ProjectModal';
 const SnippetEditor = () => {
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState('javascript');
-  const [password, setPassword] = useState('');
   const [expiryHours, setExpiryHours] = useState(24);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generatedLink, setGeneratedLink] = useState('');
@@ -46,7 +45,6 @@ const SnippetEditor = () => {
       const response = await api.post('/create', {
         code,
         language,
-        password: password || null,
         expiryHours: parseInt(expiryHours),
         projectId: selectedProjectId || null
       });
@@ -188,24 +186,7 @@ const SnippetEditor = () => {
             </div>
           )}
 
-          {!selectedProjectId ? (
-            <div className="form-group">
-              <label><Lock size={16} /> Protection (Optional)</label>
-              <input 
-                type="password" 
-                placeholder="Enter password..."
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          ) : (
-            <div className="form-group">
-              <label className="text-muted"><Lock size={16} /> Protection</label>
-              <div className="info-box glass-card">
-                <p>This snippet will use the folder's password protection.</p>
-              </div>
-            </div>
-          )}
+          {/* Individual password protection removed per user request */}
 
           <button 
             className="btn btn-primary btn-block" 

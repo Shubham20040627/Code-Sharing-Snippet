@@ -71,7 +71,7 @@ connectDB();
 // Create a snippet
 app.post('/api/create', async (req, res) => {
   try {
-    const { code, language, password, expiryHours, projectId } = req.body;
+    const { code, language, expiryHours, projectId } = req.body;
     
     // Optional user authentication
     let userId = null;
@@ -106,7 +106,7 @@ app.post('/api/create', async (req, res) => {
       project: projectId || null,
       code,
       language: language || 'javascript',
-      password: hashedPassword,
+      password: null, // Snippet-level password removed
       expiresAt
     });
 
@@ -155,7 +155,7 @@ app.get('/api/snippet/:id', async (req, res) => {
       }
     }
 
-    const isProtected = (!!snippet.password || projectProtected) && !isOwner;
+    const isProtected = projectProtected && !isOwner;
 
     res.status(200).json({
       code: isProtected ? null : snippet.code,
@@ -179,26 +179,19 @@ app.post('/api/snippet/:id/verify', async (req, res) => {
       return res.status(404).json({ error: 'Snippet not found' });
     }
 
-    if (!snippet.password) {
-      // Check if project has password
-      if (snippet.project) {
-        const project = await Project.findById(snippet.project);
-        if (project && project.password) {
-          const isProjectMatch = await bcrypt.compare(password, project.password);
-          if (!isProjectMatch) {
-            return res.status(401).json({ error: 'Invalid project password' });
-          }
-          return res.status(200).json({ code: snippet.code });
+    // Snippet-level password removed, checking only project password
+    if (snippet.project) {
+      const project = await Project.findById(snippet.project);
+      if (project && project.password) {
+        const isProjectMatch = await bcrypt.compare(password, project.password);
+        if (!isProjectMatch) {
+          return res.status(401).json({ error: 'Invalid project password' });
         }
+        return res.status(200).json({ code: snippet.code });
       }
-      return res.status(200).json({ code: snippet.code });
     }
-
-    const isMatch = await bcrypt.compare(password, snippet.password);
-    if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid password' });
-    }
-
+    
+    // Fallback if somehow requested but no protection exists
     res.status(200).json({ code: snippet.code });
   } catch (error) {
     console.error('Error verifying password:', error);
