@@ -4,7 +4,7 @@ import { Code2, User, LogOut, LayoutDashboard, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -47,7 +47,8 @@ const Navbar = () => {
           <span>SnippetShare</span>
         </Link>
 
-        {user && (
+        {/* Only show search bar if definitely logged in and not loading */}
+        {!loading && user?._id && (
           <form onSubmit={handleSearch} className="nav-search" id="navbar-search-form">
             <Search size={18} />
             <input 
