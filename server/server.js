@@ -48,9 +48,24 @@ if (!MONGODB_URI) {
   process.exit(1);
 }
 
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch((err) => console.error('❌ MongoDB connection error:', err));
+// MongoDB Connection with improved stability and logging
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+    });
+    console.log(`✅ Connected to MongoDB: ${conn.connection.host}`);
+  } catch (err) {
+    console.error('❌ MongoDB connection error:', err.message);
+    // On Render, we want to know if it's a timeout or auth error
+    if (err.message.includes('timeout')) {
+      console.log('TIP: Check your MongoDB Atlas Network Access (IP Whitelist).');
+    }
+  }
+};
+
+connectDB();
 
 // Create a snippet
 app.post('/api/create', async (req, res) => {
