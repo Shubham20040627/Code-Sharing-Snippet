@@ -43,10 +43,11 @@ const Dashboard = () => {
   const deleteSnippet = async (id) => {
     if (!window.confirm('Are you sure you want to delete this snippet?')) return;
     try {
-      // In a real app, you'd call an API here. For now, we update local state.
+      await api.delete(`/snippet/${id}`);
       setSnippets(snippets.filter(s => s._id !== id));
     } catch (error) {
-      alert('Failed to delete snippet');
+      console.error('Delete error:', error);
+      alert(error.response?.data?.error || 'Failed to delete snippet');
     }
   };
 

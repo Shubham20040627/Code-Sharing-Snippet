@@ -200,6 +200,21 @@ app.post('/api/snippet/:id/verify', async (req, res) => {
 });
 
 
+// Delete a snippet
+app.delete("/api/snippet/:id", auth, async (req, res) => {
+  try {
+    const snippet = await Snippet.findOne({ _id: req.params.id, owner: req.user._id });
+    if (!snippet) {
+      return res.status(404).json({ error: "Snippet not found or unauthorized" });
+    }
+    await Snippet.deleteOne({ _id: req.params.id });
+    res.json({ message: "Snippet deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 // Project Routes
 app.post("/api/projects", auth, async (req, res) => {
   try {

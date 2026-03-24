@@ -47,15 +47,17 @@ const Navbar = () => {
           <span>SnippetShare</span>
         </Link>
 
-        <form onSubmit={handleSearch} className="nav-search">
-          <Search size={18} />
-          <input 
-            type="text" 
-            placeholder="Find a snippet (ID or link)..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </form>
+        {user && (
+          <form onSubmit={handleSearch} className="nav-search" id="navbar-search-form">
+            <Search size={18} />
+            <input 
+              type="text" 
+              placeholder="Find a snippet (ID or link)..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </form>
+        )}
 
         <div className="nav-links">
           {user ? (
