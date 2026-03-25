@@ -90,11 +90,6 @@ app.post('/api/create', async (req, res) => {
     }
 
     const shortId = nanoid(10);
-    let hashedPassword = null;
-    if (password) {
-      hashedPassword = await bcrypt.hash(password, 10);
-    }
-
     let expiresAt = null;
     if (expiryHours) {
       expiresAt = new Date(Date.now() + expiryHours * 60 * 60 * 1000);
@@ -200,16 +195,28 @@ app.post('/api/snippet/:id/verify', async (req, res) => {
 });
 
 
-// Delete a snippet
 app.delete("/api/snippet/:id", auth, async (req, res) => {
   try {
-    const snippet = await Snippet.findOne({ _id: req.params.id, user: req.user._id });
+    const { id } = req.params;
+    
+    // Try to find by _id first, then by shortId if cast fails
+    let snippet = null;
+    try {
+      snippet = await Snippet.findOne({ _id: id, user: req.user._id });
+    } catch (e) {
+      // If it's not a valid ObjectId, try finding by shortId
+      snippet = await Snippet.findOne({ shortId: id, user: req.user._id });
+    }
+
     if (!snippet) {
+      console.log(`Deletion failed: Snippet ${id} not found for user ${req.user.email}`);
       return res.status(404).json({ error: "Snippet not found or unauthorized" });
     }
-    await Snippet.deleteOne({ _id: req.params.id });
+
+    await Snippet.deleteOne({ _id: snippet._id });
     res.json({ message: "Snippet deleted successfully" });
   } catch (error) {
+    console.error('Error deleting snippet:', error);
     res.status(500).json({ error: "Server error" });
   }
 });
