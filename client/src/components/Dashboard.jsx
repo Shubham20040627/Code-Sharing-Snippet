@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Code2, ExternalLink, Trash2, Calendar, Folder, MoreVertical, LayoutGrid, List } from 'lucide-react';
+import { Plus, Code2, ExternalLink, Trash2, Calendar, Folder, MoreVertical, LayoutGrid, List, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProjectModal from './ProjectModal';
 
@@ -12,6 +12,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -55,9 +56,12 @@ const Dashboard = () => {
     setProjects([...projects, newProject]);
   };
 
-  const filteredSnippets = selectedProjectId 
-    ? snippets.filter(s => s.project?._id === selectedProjectId)
-    : snippets;
+  const filteredSnippets = snippets.filter(s => {
+    const matchesProject = !selectedProjectId || s.project?._id === selectedProjectId;
+    const matchesSearch = s.code.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          s.language.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesProject && matchesSearch;
+  });
 
   if (loading) return (
     <div className="container loader-container">
@@ -116,7 +120,16 @@ const Dashboard = () => {
         <main className="dashboard-main">
           <div className="section-header">
             <h2>{selectedProjectId ? projects.find(p => p._id === selectedProjectId)?.name : 'Recent Snippets'}</h2>
-            <div className="view-controls">
+            <div className="dashboard-controls">
+              <div className="search-bar glass-card">
+                <Search size={18} />
+                <input 
+                  type="text" 
+                  placeholder="Search snippets..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
               {selectedProjectId && projects.find(p => p._id === selectedProjectId)?.description && (
                 <p className="project-desc">{projects.find(p => p._id === selectedProjectId).description}</p>
               )}

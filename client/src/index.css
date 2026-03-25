@@ -612,6 +612,38 @@ select option {
   font-weight: 700;
 }
 
+.dashboard-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03) !important;
+  width: 100%;
+  max-width: 300px;
+  height: 42px;
+}
+
+.search-bar input {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  font-size: 0.9rem;
+  box-shadow: none !important;
+  color: var(--text-main);
+}
+
+.search-bar svg {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
 .project-desc {
   color: var(--text-muted);
   font-size: 0.9rem;
