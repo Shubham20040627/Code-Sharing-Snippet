@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import { nanoid } from 'nanoid';
+
 
 const projectSchema = new mongoose.Schema({
   name: {
@@ -14,6 +16,12 @@ const projectSchema = new mongoose.Schema({
   password: {
     type: String,
     default: null
+  },
+  shortId: {
+    type: String,
+    required: true,
+    unique: true,
+    default: () => nanoid(12)
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,

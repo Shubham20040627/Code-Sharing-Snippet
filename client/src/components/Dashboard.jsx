@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Code2, ExternalLink, Trash2, Calendar, Folder, MoreVertical, LayoutGrid, List, Search } from 'lucide-react';
+import { Plus, Code2, ExternalLink, Trash2, Calendar, Folder, MoreVertical, LayoutGrid, List, Search, Share2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProjectModal from './ProjectModal';
 
@@ -56,6 +56,12 @@ const Dashboard = () => {
     setProjects([...projects, newProject]);
   };
 
+  const copyProjectLink = (shortId) => {
+    const link = `${window.location.origin}/project/shared/${shortId}`;
+    navigator.clipboard.writeText(link);
+    alert('Folder share link copied to clipboard!');
+  };
+
   const filteredSnippets = snippets.filter(s => {
     const matchesProject = !selectedProjectId || s.project?._id === selectedProjectId;
     const matchesSearch = s.code.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -103,16 +109,24 @@ const Dashboard = () => {
               <span className="count">{snippets.length}</span>
             </button>
             {projects.map(project => (
-              <button 
-                key={project._id}
-                className={`project-link ${selectedProjectId === project._id ? 'active' : ''}`}
-                onClick={() => setSelectedProjectId(project._id)}
-              >
-                <Folder size={18} /> {project.name}
-                <span className="count">
-                  {snippets.filter(s => s.project?._id === project._id).length}
-                </span>
-              </button>
+              <div key={project._id} className="project-link-wrapper">
+                <button 
+                  className={`project-link ${selectedProjectId === project._id ? 'active' : ''}`}
+                  onClick={() => setSelectedProjectId(project._id)}
+                >
+                  <Folder size={18} /> {project.name}
+                  <span className="count">
+                    {snippets.filter(s => s.project?._id === project._id).length}
+                  </span>
+                </button>
+                <button 
+                  className="btn-share-mini"
+                  onClick={(e) => { e.stopPropagation(); copyProjectLink(project.shortId); }}
+                  title="Share Folder"
+                >
+                  <Share2 size={14} />
+                </button>
+              </div>
             ))}
           </nav>
         </aside>

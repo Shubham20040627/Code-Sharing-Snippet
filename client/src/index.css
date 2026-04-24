@@ -590,12 +590,35 @@ select option {
   border-radius: 20px;
 }
 
-.project-link.active .count {
-  background: rgba(0, 0, 0, 0.2);
+.project-link-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
 }
 
-.dashboard-main {
-  min-width: 0;
+.project-link-wrapper .project-link {
+  flex: 1;
+}
+
+.btn-share-mini {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-share-mini:hover {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
 }
 
 .section-header {

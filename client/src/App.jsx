@@ -7,6 +7,7 @@ import SnippetViewer from './components/SnippetViewer';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import Dashboard from './components/Dashboard';
+import ProjectViewer from './components/ProjectViewer';
 import './index.css';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/project/shared/:shortId" element={<ProjectViewer />} />
             </Routes>
           </main>
           <footer className="footer">
