@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import { nanoid } from 'nanoid';
 import bcrypt from 'bcryptjs';
 import Snippet from './models/Snippet.js';
-import Project from './models/Project.js';
+
 import authRoutes from './routes/authRoutes.js';
 import { auth } from './middleware/auth.js';
 import pkg from 'jsonwebtoken';
@@ -71,7 +71,7 @@ connectDB();
 // Create a snippet
 app.post('/api/create', async (req, res) => {
   try {
-    const { code, language, expiryHours, projectId } = req.body;
+    const { code, language, expiryHours } = req.body;
     
     // Optional user authentication
     let userId = null;
@@ -98,7 +98,6 @@ app.post('/api/create', async (req, res) => {
     const newSnippet = new Snippet({
       shortId,
       user: userId,
-      project: projectId || null,
       code,
       language: language || 'javascript',
       language: language || 'javascript',
@@ -182,58 +181,7 @@ app.delete("/api/snippet/:id", auth, async (req, res) => {
 });
 
 
-// Project Routes
-app.post("/api/projects", auth, async (req, res) => {
-  try {
-    const { name, description } = req.body;
-    const project = new Project({
-      name,
-      description,
-      owner: req.user._id
-    });
-    await project.save();
-    res.status(201).json(project);
-  } catch (error) {
-    if (error.code === 11000) {
-      return res.status(400).json({ error: "A project with this name already exists" });
-    }
-    res.status(400).json({ error: error.message || "Failed to create project" });
-  }
-});
 
-app.get("/api/projects", auth, async (req, res) => {
-  try {
-    const projects = await Project.find({ owner: req.user._id });
-    res.json(projects);
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-app.get("/api/projects/:id", auth, async (req, res) => {
-  try {
-    const project = await Project.findOne({ _id: req.params.id, owner: req.user._id });
-    if (!project) return res.status(404).json({ error: "Project find failed" });
-    const snippets = await Snippet.find({ project: project._id });
-    res.json({ project, snippets });
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-// GET Shared Project by shortId
-app.get("/api/project/shared/:shortId", async (req, res) => {
-  try {
-    const project = await Project.findOne({ shortId: req.params.shortId });
-    if (!project) return res.status(404).json({ error: "Project not found or link expired" });
-
-    const snippets = await Snippet.find({ project: project._id });
-    return res.json({ project: { name: project.name, description: project.description }, snippets, isProtected: false });
-  } catch (error) {
-    console.error('Shared project error:', error);
-    res.status(500).json({ error: "Server error" });
-  }
-});
 
 
 

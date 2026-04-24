@@ -2,16 +2,12 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Code2, ExternalLink, Trash2, Calendar, Folder, MoreVertical, LayoutGrid, List, Search, Share2 } from 'lucide-react';
+import { Plus, Code2, ExternalLink, Trash2, Calendar, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import ProjectModal from './ProjectModal';
 
 const Dashboard = () => {
   const [snippets, setSnippets] = useState([]);
-  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProjectId, setSelectedProjectId] = useState(null);
-  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
   const { user } = useAuth();
@@ -28,12 +24,8 @@ const Dashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [snippetsRes, projectsRes] = await Promise.all([
-        api.get('/auth/my-snippets'),
-        api.get('/projects')
-      ]);
+      const snippetsRes = await api.get('/auth/my-snippets');
       setSnippets(snippetsRes.data);
-      setProjects(projectsRes.data);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -52,21 +44,9 @@ const Dashboard = () => {
     }
   };
 
-  const handleProjectCreated = (newProject) => {
-    setProjects([...projects, newProject]);
-  };
-
-  const copyProjectLink = (shortId) => {
-    const link = `${window.location.origin}/project/shared/${shortId}`;
-    navigator.clipboard.writeText(link);
-    alert('Folder share link copied to clipboard!');
-  };
-
   const filteredSnippets = snippets.filter(s => {
-    const matchesProject = !selectedProjectId || s.project?._id === selectedProjectId;
-    const matchesSearch = s.code.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          s.language.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesProject && matchesSearch;
+    return s.code.toLowerCase().includes(searchTerm.toLowerCase()) || 
+           s.language.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   if (loading) return (
@@ -88,9 +68,7 @@ const Dashboard = () => {
           <p>Welcome back, {user?.email.split('@')[0]}. You have {snippets.length} snippets.</p>
         </div>
         <div className="header-actions">
-          <button onClick={() => setIsProjectModalOpen(true)} className="btn btn-outline">
-            <Folder size={18} /> New Project
-          </button>
+
           <Link to="/create" className="btn btn-primary">
             <Plus size={18} /> New Snippet
           </Link>
@@ -98,42 +76,9 @@ const Dashboard = () => {
       </motion.div>
 
       <div className="dashboard-layout">
-        <aside className="dashboard-sidebar">
-          <h3>Projects</h3>
-          <nav className="project-nav">
-            <button 
-              className={`project-link ${!selectedProjectId ? 'active' : ''}`}
-              onClick={() => setSelectedProjectId(null)}
-            >
-              <LayoutGrid size={18} /> All Snippets
-              <span className="count">{snippets.length}</span>
-            </button>
-            {projects.map(project => (
-              <div key={project._id} className="project-link-wrapper">
-                <button 
-                  className={`project-link ${selectedProjectId === project._id ? 'active' : ''}`}
-                  onClick={() => setSelectedProjectId(project._id)}
-                >
-                  <Folder size={18} /> {project.name}
-                  <span className="count">
-                    {snippets.filter(s => s.project?._id === project._id).length}
-                  </span>
-                </button>
-                <button 
-                  className="btn-share-mini"
-                  onClick={(e) => { e.stopPropagation(); copyProjectLink(project.shortId); }}
-                  title="Share Folder"
-                >
-                  <Share2 size={14} />
-                </button>
-              </div>
-            ))}
-          </nav>
-        </aside>
-
         <main className="dashboard-main">
           <div className="section-header">
-            <h2>{selectedProjectId ? projects.find(p => p._id === selectedProjectId)?.name : 'Recent Snippets'}</h2>
+            <h2>Recent Snippets</h2>
             <div className="dashboard-controls">
               <div className="search-bar glass-card">
                 <Search size={18} />
@@ -144,9 +89,6 @@ const Dashboard = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              {selectedProjectId && projects.find(p => p._id === selectedProjectId)?.description && (
-                <p className="project-desc">{projects.find(p => p._id === selectedProjectId).description}</p>
-              )}
             </div>
           </div>
 
@@ -196,11 +138,7 @@ const Dashboard = () => {
         </main>
       </div>
 
-      <ProjectModal 
-        isOpen={isProjectModalOpen}
-        onClose={() => setIsProjectModalOpen(false)}
-        onProjectCreated={handleProjectCreated}
-      />
+
     </div>
   );
 };

@@ -11,11 +11,6 @@ const snippetSchema = new mongoose.Schema({
     ref: 'User',
     default: null
   },
-  project: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Project',
-    default: null
-  },
   code: {
     type: String,
     required: true
