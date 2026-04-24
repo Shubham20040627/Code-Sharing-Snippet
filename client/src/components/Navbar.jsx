@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Code2, User, LogOut, LayoutDashboard, Search } from 'lucide-react';
+import { Code2, User, LogOut, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
@@ -61,10 +61,10 @@ const Navbar = () => {
         )}
 
         <div className="nav-links">
-          {user ? (
+          {user && user._id ? (
             <>
               <Link to="/dashboard" className="btn btn-text">
-                <LayoutDashboard size={18} /> Dashboard
+                Dashboard
               </Link>
               <button onClick={handleLogout} className="btn btn-text text-danger">
                 <LogOut size={18} /> Logout
