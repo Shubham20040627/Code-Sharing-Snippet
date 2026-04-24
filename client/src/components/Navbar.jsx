@@ -48,7 +48,7 @@ const Navbar = () => {
         </Link>
 
         {/* Only show search bar if definitely logged in and not loading */}
-        {!loading && user?._id && (
+        {!loading && user && (user.id || user._id) && (
           <form onSubmit={handleSearch} className="nav-search" id="navbar-search-form">
             <Search size={18} />
             <input 
@@ -61,7 +61,7 @@ const Navbar = () => {
         )}
 
         <div className="nav-links">
-          {user && user._id ? (
+          {user && (user.id || user._id) ? (
             <>
               <Link to="/dashboard" className="btn btn-text">
                 Dashboard
