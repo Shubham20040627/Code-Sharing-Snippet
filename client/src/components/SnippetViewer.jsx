@@ -3,15 +3,13 @@ import api from '../api';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Lock, Clock, Calendar, Copy, Check, ChevronLeft, Share2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Clock, Calendar, Copy, Check, ChevronLeft, Share2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const SnippetViewer = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [snippet, setSnippet] = useState(null);
-  const [password, setPassword] = useState('');
-  const [isProtected, setIsProtected] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -25,23 +23,11 @@ const SnippetViewer = () => {
       setLoading(true);
       const response = await api.get(`/snippet/${id}`);
       setSnippet(response.data);
-      setIsProtected(response.data.isProtected);
+
       setLoading(false);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to fetch snippet');
       setLoading(false);
-    }
-  };
-
-  const handleVerifyPassword = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await api.post(`/snippet/${id}/verify`, { password });
-      setSnippet({ ...snippet, code: response.data.code });
-      setIsProtected(false);
-      setError('');
-    } catch (err) {
-      setError(err.response?.data?.error || 'Invalid password');
     }
   };
 
@@ -60,7 +46,7 @@ const SnippetViewer = () => {
     </div>
   );
 
-  if (error && !isProtected) return (
+  if (error) return (
     <div className="container viewer-page">
       <div className="glass-card text-center mx-auto" style={{ maxWidth: '500px' }}>
         <h2 className="text-danger">Error</h2>
@@ -84,41 +70,6 @@ const SnippetViewer = () => {
         )}
       </div>
 
-      <AnimatePresence mode="wait">
-        {isProtected ? (
-          <motion.div 
-            key="protected"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="auth-card glass-card mx-auto"
-            style={{ maxWidth: '400px' }}
-          >
-            <div className="auth-header text-center mb-6">
-              <div className="icon-circle mx-auto mb-4">
-                <Lock size={32} className="text-accent" />
-              </div>
-              <h2>Protected</h2>
-              <p>Password required to decrypt.</p>
-            </div>
-            <form onSubmit={handleVerifyPassword}>
-              <div className="form-group">
-                <label>Password</label>
-                <input 
-                  type="password" 
-                  autoFocus
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              {error && <p className="text-danger mb-4 text-center">{error}</p>}
-              <button type="submit" className="btn btn-primary btn-block">
-                Unlock Snippet
-              </button>
-            </form>
-          </motion.div>
-        ) : (
           <motion.div 
             key="content"
             initial={{ opacity: 0, y: 20 }}
@@ -152,8 +103,6 @@ const SnippetViewer = () => {
               </SyntaxHighlighter>
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

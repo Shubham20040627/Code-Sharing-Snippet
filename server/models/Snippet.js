@@ -25,10 +25,6 @@ const snippetSchema = new mongoose.Schema({
     required: true,
     default: 'javascript'
   },
-  password: {
-    type: String,
-    default: null
-  },
   expiresAt: {
     type: Date,
     default: null

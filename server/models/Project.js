@@ -13,10 +13,6 @@ const projectSchema = new mongoose.Schema({
     trim: true,
     default: ''
   },
-  password: {
-    type: String,
-    default: null
-  },
   shortId: {
     type: String,
     required: true,

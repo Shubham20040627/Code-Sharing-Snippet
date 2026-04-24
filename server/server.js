@@ -101,7 +101,7 @@ app.post('/api/create', async (req, res) => {
       project: projectId || null,
       code,
       language: language || 'javascript',
-      password: null, // Snippet-level password removed
+      language: language || 'javascript',
       expiresAt
     });
 
@@ -140,22 +140,10 @@ app.get('/api/snippet/:id', async (req, res) => {
       }
     }
 
-    // Check if password protected (bypass if owner)
-    // If snippet belongs to a project, check project password too
-    let projectProtected = false;
-    if (snippet.project) {
-      const project = await Project.findById(snippet.project);
-      if (project && project.password && !isOwner) {
-        projectProtected = true;
-      }
-    }
-
-    const isProtected = projectProtected && !isOwner;
-
     res.status(200).json({
-      code: isProtected ? null : snippet.code,
+      code: snippet.code,
       language: snippet.language,
-      isProtected,
+      isProtected: false,
       createdAt: snippet.createdAt
     });
   } catch (error) {
@@ -164,35 +152,7 @@ app.get('/api/snippet/:id', async (req, res) => {
   }
 });
 
-// Verify password for a snippet
-app.post('/api/snippet/:id/verify', async (req, res) => {
-  try {
-    const { password } = req.body;
-    const snippet = await Snippet.findOne({ shortId: req.params.id });
 
-    if (!snippet) {
-      return res.status(404).json({ error: 'Snippet not found' });
-    }
-
-    // Snippet-level password removed, checking only project password
-    if (snippet.project) {
-      const project = await Project.findById(snippet.project);
-      if (project && project.password) {
-        const isProjectMatch = await bcrypt.compare(password, project.password);
-        if (!isProjectMatch) {
-          return res.status(401).json({ error: 'Invalid project password' });
-        }
-        return res.status(200).json({ code: snippet.code });
-      }
-    }
-    
-    // Fallback if somehow requested but no protection exists
-    res.status(200).json({ code: snippet.code });
-  } catch (error) {
-    console.error('Error verifying password:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
 
 
 app.delete("/api/snippet/:id", auth, async (req, res) => {
@@ -225,15 +185,10 @@ app.delete("/api/snippet/:id", auth, async (req, res) => {
 // Project Routes
 app.post("/api/projects", auth, async (req, res) => {
   try {
-    const { name, description, password } = req.body;
-    let hashedPassword = null;
-    if (password) {
-      hashedPassword = await bcrypt.hash(password, 10);
-    }
+    const { name, description } = req.body;
     const project = new Project({
       name,
       description,
-      password: hashedPassword,
       owner: req.user._id
     });
     await project.save();
@@ -272,41 +227,15 @@ app.get("/api/project/shared/:shortId", async (req, res) => {
     const project = await Project.findOne({ shortId: req.params.shortId });
     if (!project) return res.status(404).json({ error: "Project not found or link expired" });
 
-    // Check if password protected
-    const isProtected = !!project.password;
-    
-    // If NOT protected, return all snippets immediately
-    if (!isProtected) {
-      const snippets = await Snippet.find({ project: project._id }).select('-password');
-      return res.json({ project: { name: project.name, description: project.description }, snippets, isProtected: false });
-    }
-
-    // If protected, return only metadata (frontend will ask for password)
-    res.json({ project: { name: project.name, description: project.description }, isProtected: true });
+    const snippets = await Snippet.find({ project: project._id });
+    return res.json({ project: { name: project.name, description: project.description }, snippets, isProtected: false });
   } catch (error) {
     console.error('Shared project error:', error);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// Verify Project Password
-app.post("/api/project/shared/:shortId/verify", async (req, res) => {
-  try {
-    const { password } = req.body;
-    const project = await Project.findOne({ shortId: req.params.shortId });
-    
-    if (!project) return res.status(404).json({ error: "Project not found" });
-    if (!project.password) return res.status(400).json({ error: "Project is not protected" });
 
-    const isMatch = await bcrypt.compare(password, project.password);
-    if (!isMatch) return res.status(401).json({ error: "Invalid password" });
-
-    const snippets = await Snippet.find({ project: project._id }).select('-password');
-    res.json({ project: { name: project.name, description: project.description }, snippets });
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
-  }
-});
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

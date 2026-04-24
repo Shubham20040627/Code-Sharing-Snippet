@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { X, FolderPlus, Lock, AlignLeft } from 'lucide-react';
+import { X, FolderPlus, AlignLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api';
 
 const ProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -20,15 +19,13 @@ const ProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     try {
       const response = await api.post('/projects', {
         name,
-        description,
-        password: password || null
+        description
       });
       onProjectCreated(response.data);
       onClose();
       // Reset form
       setName('');
       setDescription('');
-      setPassword('');
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to create project');
     } finally {
@@ -74,16 +71,7 @@ const ProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
             />
           </div>
 
-          <div className="form-group">
-            <label><Lock size={16} /> Project Password (Optional)</label>
-            <input 
-              type="password" 
-              placeholder="Set a password for the whole folder..." 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <p className="hint-text">If set, anyone viewing snippets in this project will need this password.</p>
-          </div>
+
 
           {error && <p className="error-msg">{error}</p>}
 
