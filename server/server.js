@@ -71,7 +71,7 @@ connectDB();
 // Create a snippet
 app.post('/api/create', async (req, res) => {
   try {
-    const { code, language, expiryHours } = req.body;
+    const { code, language } = req.body;
     
     // Optional user authentication
     let userId = null;
@@ -90,18 +90,14 @@ app.post('/api/create', async (req, res) => {
     }
 
     const shortId = nanoid(10);
-    let expiresAt = null;
-    if (expiryHours) {
-      expiresAt = new Date(Date.now() + expiryHours * 60 * 60 * 1000);
-    }
+
 
     const newSnippet = new Snippet({
       shortId,
       user: userId,
       code,
       language: language || 'javascript',
-      language: language || 'javascript',
-      expiresAt
+
     });
 
     await newSnippet.save();
@@ -122,7 +118,7 @@ app.get('/api/snippet/:id', async (req, res) => {
     const snippet = await Snippet.findOne({ shortId: req.params.id });
 
     if (!snippet) {
-      return res.status(404).json({ error: 'Snippet not found or expired' });
+      return res.status(404).json({ error: 'Snippet not found' });
     }
 
     // Optional user authentication to check if user is the owner

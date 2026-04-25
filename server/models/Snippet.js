@@ -20,18 +20,14 @@ const snippetSchema = new mongoose.Schema({
     required: true,
     default: 'javascript'
   },
-  expiresAt: {
-    type: Date,
-    default: null
-  },
+
   createdAt: {
     type: Date,
     default: Date.now
   }
 });
 
-// TTL index for automatic expiration if expiresAt is set
-snippetSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
 
 const Snippet = mongoose.model('Snippet', snippetSchema);
 

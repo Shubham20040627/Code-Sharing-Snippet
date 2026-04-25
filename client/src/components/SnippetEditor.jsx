@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { useNavigate } from 'react-router-dom';
-import { Share2, Clock, Copy, Check, User } from 'lucide-react';
+import { Share2, Copy, Check, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 
 const SnippetEditor = () => {
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState('javascript');
-  const [expiryHours, setExpiryHours] = useState(24);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generatedLink, setGeneratedLink] = useState('');
   const [copied, setCopied] = useState(false);
@@ -28,7 +28,6 @@ const SnippetEditor = () => {
       const response = await api.post('/create', {
         code,
         language,
-        expiryHours: parseInt(expiryHours)
       });
 
       const { shortId } = response.data;
@@ -130,15 +129,7 @@ const SnippetEditor = () => {
         >
           <h3>Snippet Settings</h3>
           
-          <div className="form-group">
-            <label><Clock size={16} /> Expiry</label>
-            <select value={expiryHours} onChange={(e) => setExpiryHours(e.target.value)}>
-              <option value="1">1 Hour</option>
-              <option value="24">24 Hours</option>
-              <option value="168">7 Days</option>
-              <option value="0">Never</option>
-            </select>
-          </div>
+
 
 
 

@@ -3,7 +3,7 @@ import api from '../api';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Clock, Calendar, Copy, Check, ChevronLeft, Share2 } from 'lucide-react';
+import { Calendar, Copy, Check, ChevronLeft, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const SnippetViewer = () => {
