@@ -10,24 +10,30 @@ const router = express.Router();
 
 // Signup
 router.post('/signup', async (req, res) => {
-  console.log('Signup hit with body:', req.body);
+  console.log('Signup hit with body:', { ...req.body, password: '***' });
   try {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
     
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({ error: 'Email already in use' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ email, password: hashedPassword });
+    const user = new User({ email: normalizedEmail, password: hashedPassword });
     await user.save();
     
     const token = sign({ _id: user._id.toString() }, process.env.JWT_SECRET || 'your_jwt_secret_key_here');
-    res.status(201).send({ user: { email: user.email, id: user._id }, token });
+    res.status(201).json({ user: { email: user.email, id: user._id }, token });
   } catch (error) {
     console.error('Signup error:', error);
-    res.status(400).send({ error: error.message || 'Signup failed' });
+    res.status(400).json({ error: error.message || 'Signup failed' });
   }
 });
 
@@ -35,16 +41,23 @@ router.post('/signup', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).send({ error: 'Invalid login credentials' });
+      return res.status(401).json({ error: 'Invalid login credentials' });
     }
 
     const token = sign({ _id: user._id.toString() }, process.env.JWT_SECRET || 'your_jwt_secret_key_here');
-    res.send({ user: { email: user.email, id: user._id }, token });
+    res.json({ user: { email: user.email, id: user._id }, token });
   } catch (error) {
-    res.status(400).send(error);
+    console.error('Login error:', error);
+    res.status(400).json({ error: error.message || 'Login failed' });
   }
 });
 
@@ -52,11 +65,11 @@ router.post('/login', async (req, res) => {
 router.get('/my-snippets', auth, async (req, res) => {
   try {
     const snippets = await Snippet.find({ user: req.user._id })
-      .populate('project')
       .sort({ createdAt: -1 });
-    res.send(snippets);
+    res.json(snippets);
   } catch (error) {
-    res.status(500).send();
+    console.error('Error fetching snippets:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
